@@ -1,0 +1,88 @@
+# services:
+#   postgres:
+#     image: postgres:13
+#     environment:
+#       POSTGRES_USER: airflow
+#       POSTGRES_PASSWORD: airflow
+#       POSTGRES_DB: airflow
+#     ports:
+#       - "5432:5432"
+#     restart: always
+
+#   airflow-init:
+#     image: apache/airflow:2.6.0
+#     entrypoint: ["airflow", "db", "init"]
+#     environment:
+#       - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
+#     depends_on:
+#       - postgres
+#     restart: on-failure
+
+#   airflow-webserver:
+#     image: apache/airflow:2.6.0
+#     command: webserver
+#     environment:
+#       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+#       - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
+#     ports:
+#       - "8080:8080"
+#     depends_on:
+#       - airflow-init
+#     restart: always
+
+services:
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    ports:
+      - "5432:5432"
+    restart: always
+
+  airflow-init:
+    image: apache/airflow:2.6.0
+    entrypoint: ["airflow", "db", "init"]
+    environment:
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
+    depends_on:
+      - postgres
+    restart: on-failure
+
+  airflow-webserver:
+    image: apache/airflow:2.6.0
+    command: webserver
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
+      - WEATHER_API_KEY=360275c6b467b8b528029071986be8c7 # Thêm biến môi trường trực tiếp
+      - WEATHER_BASE_URL=https://api.openweathermap.org/data/2.5/weather # Thêm biến môi trường trực tiếp
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./scripts:/opt/airflow/scripts # Dòng này rất quan trọng
+      - ./config:/opt/airflow/config # 🔥 Mount thư mục chứa service_account.json
+      - ./data:/opt/airflow/data # 🔥 Mount thư mục chứa service_account.json
+    ports:
+      - "8080:8080"
+    depends_on:
+      - airflow-init
+    restart: always
+
+  airflow-scheduler:
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./scripts:/opt/airflow/scripts # Dòng này rất quan trọng
+      - ./config:/opt/airflow/config # 🔥 Mount thư mục chứa service_account.json
+      - ./data:/opt/airflow/data # 🔥 Mount thư mục chứa service_account.json
+    image: apache/airflow:2.6.0
+    command: scheduler
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
+      - WEATHER_API_KEY=360275c6b467b8b528029071986be8c7 # Thêm biến môi trường trực tiếp
+      - WEATHER_BASE_URL=https://api.openweathermap.org/data/2.5/weather # Thêm biến môi trường trực tiếp
+    depends_on:
+      - airflow-init
+      - postgres
+    restart: always

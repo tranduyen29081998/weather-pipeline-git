@@ -1,0 +1,7 @@
+apache-airflow
+pandas
+requests
+google-cloud-bigquery
+google-auth
+psycopg2-binary
+python-dotenv
