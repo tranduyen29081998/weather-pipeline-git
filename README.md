@@ -10,7 +10,7 @@ It fetches real-time weather data from OpenWeatherMap, processes it using Pandas
 ### 1️⃣ Clone Repository
 
 ```sh
-git clone https://github.com/your-repo/weather_pipeline.git
+git clone https://github.com/tranduyen29081998/weather-pipeline-git
 cd weather_pipeline
 ```
 
